@@ -7,7 +7,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 WORKDIR /server
-ADD ./src .
+ADD ./src ./src
 COPY ./test ./test
 
-#CMD ["uvicorn app:app --reload"]
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "80"]
