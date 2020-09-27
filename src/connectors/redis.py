@@ -1,4 +1,5 @@
 import functools, pickle, os
+import redis
 
 from datetime import timedelta
 from redis import Redis
@@ -8,7 +9,10 @@ REDIS_URL = os.environ.get("REDIS_URL")
 
 class RedisClient:
     def __init__(self, hostname=REDIS_URL, port=6379, db=0, password=None):
-        self.r = Redis(host=hostname, port=port, db=db, password=password)
+        if "redis://" in hostname:
+            self.r = redis.from_url(REDIS_URL)
+        else:
+            self.r = Redis(host=hostname, port=port, db=db, password=password)
 
     def cache(self, func, expiration_time=timedelta(hours=8)):
         """Redis cache wrapper
