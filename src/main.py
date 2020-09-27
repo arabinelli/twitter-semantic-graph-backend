@@ -1,3 +1,4 @@
+import os
 from typing import Optional, List
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -17,6 +18,10 @@ origins = [
     "http://localhost:3001",
     "http://0.0.0.0:3000",
 ]
+
+additional_origins = os.environ.get("ADDITIONAL_ORIGINS")
+if additional_origins:
+    origins += additional_origins.split(",")
 
 app.add_middleware(
     CORSMiddleware,
