@@ -1,4 +1,4 @@
-import functools, pickle, hashlib, os
+import functools, pickle, os
 
 from datetime import timedelta
 from redis import Redis
@@ -45,6 +45,6 @@ class RedisClient:
             + func.__name__
             + " - "
             # + hashlib.sha256(func.__code__).hexdigest()
-            + "|".join(str(arg) for arg in args)
+            + "|".join(str(arg if arg is not None else "None") for arg in args)
             + "|".join(kwargs_list)
         )
