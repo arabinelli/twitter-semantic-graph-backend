@@ -5,3 +5,4 @@ pandas==1.1.0
 pydantic==1.6.1
 redis==3.4.1
 uvicorn
+fastapi==0.61.1
