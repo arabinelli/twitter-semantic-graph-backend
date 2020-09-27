@@ -2,9 +2,9 @@ from typing import Optional, List
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from connectors.twitter import TwitterClient
-from connectors.redis import RedisClient
-from logic.network import NetworkBuilder
+from .connectors.twitter import TwitterClient
+from .connectors.redis import RedisClient
+from .logic.network import NetworkBuilder
 from fastapi.middleware.cors import CORSMiddleware
 
 redis_client = RedisClient()
