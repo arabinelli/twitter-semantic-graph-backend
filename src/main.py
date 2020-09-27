@@ -1,27 +1,29 @@
 import os
-from typing import Optional, List
+from typing import List, Optional
+from warnings import warn
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from .connectors.twitter import TwitterClient
 from .connectors.redis import RedisClient
+from .connectors.twitter import TwitterClient
 from .logic.network import NetworkBuilder
-from fastapi.middleware.cors import CORSMiddleware
 
 redis_client = RedisClient()
 
 app = FastAPI()
 
-origins = [
-    "http://localhost",
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "http://0.0.0.0:3000",
-]
+origins = []
 
-additional_origins = os.environ.get("ADDITIONAL_ORIGINS")
+additional_origins = os.environ.get("ORIGINS")
 if additional_origins:
     origins += additional_origins.split(",")
+else:
+    warn(
+        "No env variable 'ORIGINS' was found."
+        + "Ya know, generally speaking, nicht gut..."
+    )
 
 app.add_middleware(
     CORSMiddleware,
