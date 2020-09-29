@@ -1,4 +1,4 @@
-import functools, pickle, os
+import functools, pickle, os, zlib
 import redis
 
 from datetime import timedelta
@@ -27,12 +27,14 @@ class RedisClient:
             existing_cache = self.r.get(cache_hash)
             if existing_cache is not None:
                 print("Returning result from the cache")
-                return pickle.loads(existing_cache)
+                return pickle.loads(zlib.decompress(existing_cache))
             else:
                 result = func(*args, **kwargs)
                 try:
                     self.r.setex(
-                        cache_hash, time=expiration_time, value=pickle.dumps(result)
+                        cache_hash,
+                        time=expiration_time,
+                        value=zlib.compress(pickle.dumps(result)),
                     )
                     print("Result saved in the cache")
                 except redis.exceptions.ResponseError as e:

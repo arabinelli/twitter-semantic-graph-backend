@@ -1,6 +1,7 @@
 import os
 from typing import List, Optional
 from warnings import warn
+from collections import namedtuple
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -49,54 +50,63 @@ class TweetsRequest(BaseModel):
     target_hashtag: str
 
 
+Tweet = namedtuple("Tweet", ["id", "text", "screen_name", "username", "created_at"])
+
+
 @redis_client.cache
 def get_tweets(hashtags, filter_retweets, languages):
     twitter_client = TwitterClient()
     tweets, full_text = twitter_client.search_tweets_by_hashtags(
         hashtags, filter_retweets=filter_retweets, languages=languages,
     )
-    return [tweet for tweet in tweets], full_text
+    if full_text:
+        list_of_tweets = [
+            Tweet(
+                tweet.id,
+                tweet.full_text,
+                tweet.user.screen_name,
+                tweet.user.name,
+                tweet.created_at,
+            )
+            for tweet in tweets
+        ]
+    else:
+        list_of_tweets = [
+            Tweet(
+                tweet.id,
+                tweet.text,
+                tweet.user.screen_name,
+                tweet.user.name,
+                tweet.created_at,
+            )
+            for tweet in tweets
+        ]
+    return list_of_tweets
 
 
 def get_tweets_text(hashtags, filter_retweets, languages):
-    tweets, full_text = get_tweets(
+    tweets = get_tweets(
         hashtags=hashtags, filter_retweets=filter_retweets, languages=languages
     )
-    if full_text:
-        corpus = [tweet.full_text for tweet in tweets]
-    else:
-        corpus = [tweet.text for tweet in tweets]
-    return corpus
+    return [tweet.text for tweet in tweets]
 
 
 def get_relevant_tweets(hashtags, filter_retweets, languages, target_hashtag):
-    tweets, full_text = get_tweets(
+    tweets = get_tweets(
         hashtags=hashtags, filter_retweets=filter_retweets, languages=languages
     )
-    if full_text:
-        return [
-            {
-                "key": tweet.id,
-                "text": tweet.full_text,
-                "twitter_handle": "@" + tweet.user.screen_name,
-                "username": tweet.user.name,
-                "datetime": tweet.created_at,
-            }
-            for tweet in tweets
-            if target_hashtag.lower() in tweet.full_text.lower()
-        ]
-    else:
-        return [
-            {
-                "key": tweet.id,
-                "text": tweet.text,
-                "twitter_handle": "@" + tweet.user.screen_name,
-                "username": tweet.user.name,
-                "datetime": tweet.created_at,
-            }
-            for tweet in tweets
-            if target_hashtag.lower() in tweet.full_text.lower()
-        ]
+
+    return [
+        {
+            "key": tweet.id,
+            "text": tweet.text,
+            "twitter_handle": "@" + tweet.screen_name,
+            "username": tweet.username,
+            "datetime": tweet.created_at,
+        }
+        for tweet in tweets
+        if target_hashtag.lower() in tweet.text.lower()
+    ]
 
 
 def make_graph(request: GraphRequest):
