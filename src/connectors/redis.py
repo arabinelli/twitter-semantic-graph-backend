@@ -30,10 +30,13 @@ class RedisClient:
                 return pickle.loads(existing_cache)
             else:
                 result = func(*args, **kwargs)
-                self.r.setex(
-                    cache_hash, time=expiration_time, value=pickle.dumps(result)
-                )
-                print("Result saved in the cache")
+                try:
+                    self.r.setex(
+                        cache_hash, time=expiration_time, value=pickle.dumps(result)
+                    )
+                    print("Result saved in the cache")
+                except redis.exceptions.ResponseError as e:
+                    print(e)
                 return result
 
         return wrapper
