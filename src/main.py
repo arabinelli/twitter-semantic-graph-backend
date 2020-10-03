@@ -50,7 +50,18 @@ class TweetsRequest(BaseModel):
     target_hashtag: str
 
 
-Tweet = namedtuple("Tweet", ["id", "text", "screen_name", "username", "created_at"])
+Tweet = namedtuple(
+    "Tweet",
+    [
+        "id",
+        "text",
+        "screen_name",
+        "username",
+        "created_at",
+        "retweet_count",
+        "favorite_count",
+    ],
+)
 
 
 @redis_client.cache
@@ -59,25 +70,30 @@ def get_tweets(hashtags, filter_retweets, languages):
     tweets, full_text = twitter_client.search_tweets_by_hashtags(
         hashtags, filter_retweets=filter_retweets, languages=languages,
     )
+    print(next(tweets))
     if full_text:
         list_of_tweets = [
             Tweet(
-                tweet.id,
+                tweet.id_str,
                 tweet.full_text,
                 tweet.user.screen_name,
                 tweet.user.name,
                 tweet.created_at,
+                tweet.retweet_count,
+                tweet.favorite_count,
             )
             for tweet in tweets
         ]
     else:
         list_of_tweets = [
             Tweet(
-                tweet.id,
+                tweet.id_str,
                 tweet.text,
                 tweet.user.screen_name,
                 tweet.user.name,
                 tweet.created_at,
+                tweet.retweet_count,
+                tweet.favorite_count,
             )
             for tweet in tweets
         ]
@@ -103,6 +119,8 @@ def get_relevant_tweets(hashtags, filter_retweets, languages, target_hashtag):
             "twitter_handle": "@" + tweet.screen_name,
             "username": tweet.username,
             "datetime": tweet.created_at,
+            "retweet_count": tweet.retweet_count,
+            "favorite_count": tweet.favorite_count,
         }
         for tweet in tweets
         if target_hashtag.lower() in tweet.text.lower()
