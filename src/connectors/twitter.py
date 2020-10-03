@@ -50,7 +50,7 @@ class TwitterClient:
         filter_retweets=False,
         languages=[],
         full_tweet=True,
-        tweets_limit=500,
+        tweets_limit=400,
     ):
         """Search Twitter for tweets containing one or more hashtags provided. 
 
