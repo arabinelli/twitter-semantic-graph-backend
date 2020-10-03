@@ -70,7 +70,6 @@ def get_tweets(hashtags, filter_retweets, languages):
     tweets, full_text = twitter_client.search_tweets_by_hashtags(
         hashtags, filter_retweets=filter_retweets, languages=languages,
     )
-    print(next(tweets))
     if full_text:
         list_of_tweets = [
             Tweet(
