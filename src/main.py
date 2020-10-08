@@ -3,7 +3,7 @@ from typing import List, Optional
 from warnings import warn
 from collections import namedtuple
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -132,9 +132,15 @@ def make_graph(request: GraphRequest):
         filter_retweets=request.filter_retweets,
         languages=request.languages,
     )
+    print(corpus)
+    if len(corpus) == 0:
+        return "NOT ENOUGH TWEETS"
     print("Building the graph...")
     network_builder = NetworkBuilder()
-    network_builder.load_clean_corpus(corpus)
+    try:
+        network_builder.load_clean_corpus(corpus)
+    except IndexError:
+        return "NOT ENOUGH TWEETS"
     keywords_to_remove = request.hashtags if len(request.hashtags) == 1 else []
     graph = network_builder.build_graph(
         filter_node_frequency=request.filter_node_frequency,
@@ -147,7 +153,10 @@ def make_graph(request: GraphRequest):
 @app.post("/get-graph")
 async def root(request: GraphRequest):
     print(request)
-    return make_graph(request)
+    graph_object = make_graph(request)
+    if graph_object == "NOT ENOUGH TWEETS":
+        raise HTTPException(442, detail="No tweets found. Yes, somehow this happened!")
+    return graph_object
 
 
 @app.post("/get-tweets-for-hashtag")
