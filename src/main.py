@@ -132,7 +132,6 @@ def make_graph(request: GraphRequest):
         filter_retweets=request.filter_retweets,
         languages=request.languages,
     )
-    print(corpus)
     if len(corpus) == 0:
         return "NOT ENOUGH TWEETS"
     print("Building the graph...")
